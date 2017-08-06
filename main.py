@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 from   __future__ import absolute_import
 
 import codecs
@@ -9,7 +11,7 @@ import sys
 
 import six
 
-from   . import grid
+from ngrid import grid
 
 #-------------------------------------------------------------------------------
 
@@ -35,7 +37,27 @@ class OutputSaver:
         sys.stderr = self.__old_stderr
         six.print_(self.__text)
 
-
+def file_open(filename, encoding):
+  if filename == "-":
+    # Read from stdin.
+    if six.PY2:
+      file = os.fdopen(os.dup(0), 'r')
+      file = codecs.getreader(encoding)(file)
+    else:
+      file = os.fdopen(os.dup(0), 'r', encoding=encoding)
+      os.close(0)
+      # Attach stdin to tty for interactive input.
+      sys.stdin = os.open("/dev/tty", os.O_RDONLY)
+      filename = "(stdin)"
+  elif filename.endswith("bz2"):
+    import bz2
+    file = bz2.open(filename, "rt")
+  elif filename.endswith("gz"):
+    import gzip
+    file = gzip.open(filename, "rt")
+  else:
+    file = open(filename, encoding=encoding)
+  return (file, filename)
 
 #-------------------------------------------------------------------------------
 
@@ -88,26 +110,7 @@ def main():
         encoding = "utf-8-sig"
 
     # Prepare the input file.
-    if len(args) < 1:
-        # Read from stdin.
-        if six.PY2:
-            file = os.fdopen(os.dup(0), 'r')
-            file = codecs.getreader(encoding)(file)
-        else:
-            file = os.fdopen(os.dup(0), 'r', encoding=encoding)
-        os.close(0)
-        # Attach stdin to tty for interactive input.
-        sys.stdin = os.open("/dev/tty", os.O_RDONLY)
-        filename = "(stdin)"
-    else:
-        # Open an input file.
-        filename = args[0]
-        if six.PY2:
-            file = open(filename, "rb")
-            file = codecs.getreader(encoding)(file)
-        else:
-            file = open(filename, encoding=encoding)
-
+    (file, filename) = file_open("-" if len(args) < 1 else args[0], encoding = encoding)
     with closing(file):
         if options.dataframe:
             import pandas
@@ -125,7 +128,7 @@ def main():
 
 
 if __name__ == '__main__':
-    try:    
+    try:
         main()
     except (IOError, EOFError) as exc:
         six.print_(exc, file=sys.stderr)
