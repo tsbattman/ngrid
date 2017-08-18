@@ -43,11 +43,11 @@ HEADER = True
 NAN = float("NaN")
 
 SEPARATORS = [
-    u(" "), 
-    u("\u250a"), 
-    u("  "), 
-    u("   "), 
-    u(" \u250a "), 
+    u(" "),
+    u("\u250a"),
+    u("  "),
+    u("   "),
+    u(" \u250a "),
     ]
 
 DEFAULT_CFG = {
@@ -88,7 +88,7 @@ def as_bool(value):
             return False
         else:
             raise ValueError("not a bool: {}".format(value))
-    
+
     raise TypeError("not a bool: {}".format(value))
 
 
@@ -104,7 +104,7 @@ TYPE_CONVERTERS = {
     bool: as_bool,
     float: as_float,
     }
-    
+
 
 def guess_type(values):
     """
@@ -150,7 +150,7 @@ def get_default_formatter(type, values, cfg={}):
         return formatters.IntFormatter(size)
 
     elif type is float:
-        # Float types.  
+        # Float types.
         vals = values[~(np.isnan(values) | np.isinf(values))]
         if len(vals) == 0:
             # No normal values.
@@ -159,8 +159,8 @@ def get_default_formatter(type, values, cfg={}):
         neg = (vals < 0).any()
         abs_vals = abs(vals)
         max_val = abs_vals.max()
-        if (max_val == 0 
-            or float(cfg["scientific_max"]) < max_val 
+        if (max_val == 0
+            or float(cfg["scientific_max"]) < max_val
                  < float(cfg["scientific_min"])):
             fmt = formatters.FloatFormatter
             size = 1 if len(vals) == 0 else get_size(max_val)
@@ -179,7 +179,7 @@ def get_default_formatter(type, values, cfg={}):
             if (abs(np.round(vals, precision) - vals) < tol).all():
                 break
         return fmt(
-            size, precision, 
+            size, precision,
             sign="-" if neg else None,
             nan_str=cfg["nan_string"],
             inf_str=cfg["inf_string"])
@@ -199,7 +199,7 @@ def get_default_formatter(type, values, cfg={}):
 
     else:
         raise NotImplementedError("type: {}".format(type))
-        
+
 
 def _make_csv_reader(lines, delimiter, quotechar):
     """
@@ -217,7 +217,7 @@ def _make_csv_reader(lines, delimiter, quotechar):
       The quoting character.
     """
     if six.PY2:
-        # csv.reader doesn't handle unicode; encode lines temporarily as UTF-8 
+        # csv.reader doesn't handle unicode; encode lines temporarily as UTF-8
         # to pass through it, per prescription in csv module documentation.
         return (
             [ x.decode("utf-8") for x in row ]
@@ -287,7 +287,7 @@ class DelimitedFileModel:
         return tuple( v.strip(" \"") for v in row )
 
 
-    def __init__(self, lines, has_header, num_sample, delim, comment_prefix, 
+    def __init__(self, lines, has_header, num_sample, delim, comment_prefix,
                  filename):
         """
         @type lines
@@ -308,7 +308,7 @@ class DelimitedFileModel:
         sample_lines, title_comments = self.__read_sample_lines(num_sample)
         self.title_lines = title_comments
         if len(sample_lines) == 0:
-            raise EOFError("no data") 
+            raise EOFError("no data")
 
         if delim is None:
             delim = guess_delimiter(sample_lines)
@@ -334,7 +334,7 @@ class DelimitedFileModel:
             self.__rows = self.__rows[1 :]
         else:
             self.num_cols = len(self.__rows[0])
-            self.names = tuple( 
+            self.names = tuple(
                 "col{}".format(i + 1) for i in range(self.num_cols) )
 
         # Transpose the sample lines into columns.
@@ -345,15 +345,15 @@ class DelimitedFileModel:
 
     def get_default_formatters(self, cfg={}):
         cols = tuple(zip(*self.__rows))
-        return [ 
-            get_default_formatter(t, [ cv(v) for v in col ], cfg) 
-            for t, cv, col in zip(self.types, self.converts, cols) 
+        return [
+            get_default_formatter(t, [ cv(v) for v in col ], cfg)
+            for t, cv, col in zip(self.types, self.converts, cols)
             ]
 
 
     def __is_comment(self, line):
         return (
-            self.__comment_prefix is not None 
+            self.__comment_prefix is not None
             and line.startswith(self.__comment_prefix))
 
 
@@ -490,7 +490,7 @@ class DataFrameModel:
                 s.values,
                 cfg)
             for s in series )
-        
+
 
 
 #-------------------------------------------------------------------------------
@@ -521,7 +521,7 @@ class GridView:
         self.searchTerm = None
         self.flash = None
 
-        self.keymap = { 
+        self.keymap = {
             ord('h')        : lambda: self.__show_help(),
 
             ord('g')        : lambda: self.__move_to(0),
@@ -530,9 +530,11 @@ class GridView:
             curses.KEY_FIND : lambda: self.__move("top", 0),
 
             ord('\n')       : lambda: self.__move_by(+1),
-            curses.KEY_DOWN : lambda: self.__move(+1, 0), 
+            curses.KEY_DOWN : lambda: self.__move(+1, 0),
+            ord('j')        : lambda: self.__move(+1, 0),
 
-            curses.KEY_UP   : lambda: self.__move(-1, 0), 
+            curses.KEY_UP   : lambda: self.__move(-1, 0),
+            ord('k')        : lambda: self.__move(-1, 0),
 
             ord(' ')        : lambda: self.__move_by( self.__num_rows),
             curses.KEY_NPAGE: lambda: self.__move_by( self.__num_rows),
@@ -594,7 +596,7 @@ class GridView:
         self.__num_extra_lines = xtra
         self.__num_rows = self.__screen_height - xtra
         self.__idx1 = self.__idx0 + self.__num_rows
-        
+
 
     def __get_last_col(self):
         sep = len(self.__cfg["separator"])
@@ -658,7 +660,7 @@ class GridView:
     def __toggle_cursor(self):
         self.__show_cursor = not self.__show_cursor
 
-        
+
     def __toggle_sep(self):
         sep = self.__cfg["separator"]
         try:
@@ -727,7 +729,7 @@ class GridView:
 
     def __do_search(self, dir):
         self.__screen.addstr(
-            self.__screen_height - 1, 0, 
+            self.__screen_height - 1, 0,
             ("/" if dir == 1 else "?") + " " * (self.__screen_width - 2),
             curses.A_REVERSE)
         curses.echo()
@@ -808,7 +810,7 @@ class GridView:
         col0        = self.__col0
         num_cols    = len(self.__model.names)
         cursor      = self.__cursor
-        
+
         show_cursor = self.__show_cursor
         sep         = self.__cfg["separator"]
         ellipsis    = self.__cfg["ellipsis"]
@@ -830,7 +832,7 @@ class GridView:
                 fmt = self.__formatters[c]
                 col = text.palide(
                     col, fmt.width,
-                    ellipsis=ellipsis[: fmt.width], position=0.7, 
+                    ellipsis=ellipsis[: fmt.width], position=0.7,
                     left=True)
 
                 attr = (
@@ -855,8 +857,8 @@ class GridView:
             x   = 0
             idx = self.__idx0 + i
             row = (
-                self.__model.get_row(idx) 
-                if idx < self.__model.num_rows 
+                self.__model.get_row(idx)
+                if idx < self.__model.num_rows
                 else None)
             for c in list(range(num_frozen)) + list(range(col0, num_cols)):
                 frozen = c < num_frozen
@@ -913,7 +915,7 @@ class GridView:
                 r, c = self.__cursor
                 value = str(self.__model.get_row(r)[c])
                 value = text.elide(
-                    value, width - len(status) - 4, 
+                    value, width - len(status) - 4,
                     ellipsis=self.__cfg["ellipsis"])
             else:
                 value = ""
