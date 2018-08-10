@@ -51,10 +51,10 @@ def file_open(filename, encoding):
       filename = "(stdin)"
   elif filename.endswith("bz2"):
     import bz2
-    file = bz2.open(filename, "rt")
+    file = bz2.open(filename, "rt", encoding = encoding)
   elif filename.endswith("gz"):
     import gzip
-    file = gzip.open(filename, "rt")
+    file = gzip.open(filename, "rt", encoding = encoding)
   else:
     file = open(filename, encoding=encoding)
   return (file, filename)
@@ -101,10 +101,15 @@ def main():
         action="store_true", dest="dataframe", default=False,
         help=("load input into dataframe"))
 
+    parser.add_option(
+        "-e", "--encoding",
+        action="store", dest="encoding", default=locale.getpreferredencoding(),
+        help=("source file encoding"))
+
     options, args = parser.parse_args()
 
     # Use the locale encoding to decode input files.
-    encoding = locale.getpreferredencoding()
+    encoding = options.encoding
     if encoding.lower() == "utf-8":
         # Force utf-8-sig to skip BOM.
         encoding = "utf-8-sig"
