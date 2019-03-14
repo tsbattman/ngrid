@@ -55,6 +55,9 @@ def file_open(filename, encoding):
   elif filename.endswith("gz"):
     import gzip
     file = gzip.open(filename, "rt", encoding = encoding)
+  elif filename.endswith("xz"):
+    import lzma
+    file = lzma.open(filename, "rt", encoding = encoding)
   else:
     file = open(filename, encoding=encoding)
   return (file, filename)
@@ -79,7 +82,7 @@ def main():
         "-f", "--frozen_cols", metavar="NCOLS",
         action="store", type="int", dest="frozenCols",
         help=("freeze NCOLS columns on the left [default: 1]"))
-    
+
     parser.set_defaults(bufferSize=100)
     parser.add_option(
         "-b", "--buffer_size", metavar="NROWS",
